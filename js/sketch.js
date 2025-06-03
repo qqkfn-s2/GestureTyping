@@ -4,12 +4,36 @@
 // 🤟(ILoveYou)
 function getCode(left_gesture, right_gesture) {
   let code_array = {
-    "Thumb_Up": 1,
-    "Thumb_Down": 2,
-    "Victory": 3,
-    "Pointing_Up": 4,
-    "Closed_Fist": 5,
-    "Open_Palm": 6,
+    "mygesture_a": 1,
+    "mygesture_b": 2,
+    "mygesture_c": 3,
+    "mygesture_d": 4,
+    "mygesture_e": 5,
+    "mygesture_f": 6,
+    "mygesture_g": 7,
+    "mygesture_h": 8,
+    "mygesture_i": 9,
+    "mygesture_j": 10,
+    "mygesture_k": 11,
+    "mygesture_l": 12,
+    "mygesture_m": 13,
+    "mygesture_n": 14,
+    "mygesture_o": 15,
+    "mygesture_p": 16,
+    "mygesture_q": 17,
+    "mygesture_r": 18,
+    "mygesture_s": 19,
+    "mygesture_t": 20,
+    "mygesture_u": 21,
+    "mygesture_v": 22,
+    "mygesture_w": 23,
+    "mygesture_x": 24,
+    "mygesture_y": 25,
+    "mygesture_z": 26,
+    "mygesture_space": 27,
+    "mygesture_none": 28,
+    "mygesture_delete": 29,
+    
   }
   let left_code = code_array[left_gesture];
   let right_code = code_array[right_gesture];
@@ -20,11 +44,17 @@ function getCode(left_gesture, right_gesture) {
 
 function getCharacter(code) {
   const codeToChar = {
-    "11": "a", "12": "b", "13": "c", "14": "d", "15": "e", "16": "f",
-    "21": "g", "22": "h", "23": "i", "24": "j", "25": "k", "26": "l",
-    "31": "m", "32": "n", "33": "o", "34": "p", "35": "q", "36": "r",
-    "41": "s", "42": "t", "43": "u", "44": "v", "45": "w", "46": "x",
-    "51": "y", "52": "z", "53": " ", "54": "backspace"
+    "1": "a", "2": "b", "3": "c", "4": "d", "5": "e", "6": "f",
+    "7": "g", "8": "h", "9": "i", "10": "j", "11": "k", "12": "l",
+    "13": "m", "14": "n", "15": "o", "16": "p", "17": "q", "18": "r",
+    "19": "s", "20": "t", "21": "u", "22": "v", "23": "w", "24": "x",
+    "25": "y", "26": "z", "27": " ", "28": "", "29": "backspace",
+    // 単一の数字でマッピング
+    "a": "a", "b": "b", "c": "c", "d": "d", "e": "e", "f": "f",
+    "g": "g", "h": "h", "i": "i", "j": "j", "k": "k", "l": "l",
+    "m": "m", "n": "n", "o": "o", "p": "p", "q": "q", "r": "r",
+    "s": "s", "t": "t", "u": "u", "v": "v", "w": "w", "x": "x",
+    "y": "y", "z": "z", "space": " ", "none": "", "delete": "backspace"
   };
   return codeToChar[code] || "";
 }
@@ -54,46 +84,40 @@ function setup() {
   p5canvas = createCanvas(320, 240);
   p5canvas.parent('#canvas');
 
-  // When gestures are found, the following function is called. The detection results are stored in results.
-  let lastChar = "";
-  let lastCharTime = millis();
+  let lastGesture = "";
+  let gestureStartTime = 0;
 
   gotGestures = function (results) {
     gestures_results = results;
 
-    if (results.gestures.length == 2) {
+    if (results.gestures.length > 0) {
       if (game_mode.now == "ready" && game_mode.previous == "notready") {
-        // ゲーム開始前の状態から、カメラが起動した後の状態に変化した場合
         game_mode.previous = game_mode.now;
         game_mode.now = "playing";
-        document.querySelector('input').value = ""; // 入力欄をクリア
-        game_start_time = millis(); // ゲーム開始時間を記録
+        document.querySelector('input').value = "";
+        game_start_time = millis();
       }
-      let left_gesture;
-      let right_gesture;
-      if (results.handedness[0][0].categoryName == "Left") {
-        left_gesture = results.gestures[0][0].categoryName;
-        right_gesture = results.gestures[1][0].categoryName;
-      } else {
-        left_gesture = results.gestures[1][0].categoryName;
-        right_gesture = results.gestures[0][0].categoryName;
+      
+      // Get gesture from the first detected hand
+      let currentGesture = results.gestures[0][0].categoryName;
+      
+      if (currentGesture !== lastGesture) {
+        // Reset timer when gesture changes
+        lastGesture = currentGesture;
+        gestureStartTime = millis();
+      } else if (millis() - gestureStartTime >= 1000) {
+        // Type character only after holding same gesture for 1 second
+        let code = currentGesture.replace("mygesture_", "");
+        let c = getCharacter(code);
+        typeChar(c);
+        // Reset timer after typing
+        gestureStartTime = millis();
       }
-      let code = getCode(left_gesture, right_gesture);
-      let c = getCharacter(code);
-
-      let now = millis();
-      if (c === lastChar) {
-        if (now - lastCharTime > 1000) {
-          // 1秒以上cが同じ値である場合の処理
-          typeChar(c);
-          lastCharTime = now;
-        }
-      } else {
-        lastChar = c;
-        lastCharTime = now;
-      }
+    } else {
+      // Reset when no gesture is detected
+      lastGesture = "";
+      gestureStartTime = 0;
     }
-
   }
 }
 
