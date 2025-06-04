@@ -105,7 +105,7 @@ function setup() {
         // Reset timer when gesture changes
         lastGesture = currentGesture;
         gestureStartTime = millis();
-      } else if (millis() - gestureStartTime >= 700) {
+      } else if (millis() - gestureStartTime >= 600) {
         // Type character only after holding same gesture for 1 second
         let code = currentGesture.replace("mygesture_", "");
         let c = getCharacter(code);
